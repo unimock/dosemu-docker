@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+set -x
+if [ "$DOSEMU_LPR" != "" ] ; then
+    echo '$_lpt1 = "'"$DOSEMU_LPR"'"'  >> /etc/dosemu/dosemu.conf
+fi
+echo "Cleaning up; ignore errors here:"
+/etc/init.d/checkroot-bootclean.sh || true
+rm -f /tmp/.clean || true
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
+

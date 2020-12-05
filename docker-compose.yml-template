@@ -1,0 +1,23 @@
+version: '2'
+services:
+  dosemu:
+    ##################################################
+    # BUILD - section
+    ##################################################
+    build:
+      context: ./build
+      dockerfile: Dockerfile
+    ##################################################
+    # RUN / UP - section
+    ##################################################
+    image: unimock/dosemu-docker:0.0.1 
+    restart: unless-stopped
+    container_name: dosemu
+    volumes:
+      - ./persistent:/root/.dosemu/drive_c/persistent
+    ports:
+      - "5901:5901"
+    environment:
+      - VNCPASSWORD=my_vnc_password
+      #- DOSEMU_LPR=lpr -l -H my.cups.host  -P my_cups_printer
+

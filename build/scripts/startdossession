@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# $1 - session name
+set -e
+
+if [ -z "$1" ]; then
+   echo "Syntax: $0 sessionname [dosemuargs]"
+   exit 1
+fi
+
+export SESSION="$1"
+SESSPATH="/dos/sessions/$1"
+
+if [ ! -e "$SESSPATH" ]; then
+  cp -a /dos/session.skel "$SESSPATH"
+fi
+
+if check-dosemu-session $SESSION; then
+  echo "dosemu session $SESSION already running; refusing to start again"
+  exit 1
+fi
+
+HOME=/root   # telnetd may not leave this set for us
+# Copy .Xauthority, since we have to set HOME
+rm -rf "$SESSPATH/.Xauthority"
+cp -r $HOME/.Xauthority "$SESSPATH"
+
+# After the first start, we have to copy the drive stuff into here.
+DRIVESPATH="$SESSPATH/.dosemu/drives"
+if [ -e "$DRIVESPATH" ]; then
+  cp -an /etc/dosemu/drives/* "$DRIVESPATH"
+fi
+
+
+waitfordaemon vncserver
+shift
+
+# Final sanity check.
+dotlockfile -p -l "$SESSPATH/jglock"
+# -f is an excuse for the session check
+stty raw
+DISPLAY=:1 HOME="$SESSPATH" exec dosemu -f "$SESSPATH/dosemu.conf" "$@"
+dotlockfile -p -u "$SESSPATH/jglock"
+
